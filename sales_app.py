@@ -5,6 +5,7 @@ from dash import dcc, html
 from dash.dependencies import Input, Output
 import pandas as pd
 import plotly.express as px
+import os
 
 # read the sales data
 df = pd.read_csv('data/pink_morsel_sales.csv')
@@ -17,6 +18,22 @@ df['date'] = pd.to_datetime(df['date'])
 
 # create the dash app
 app = dash.Dash(__name__)
+
+# Configure server to allow iframe embedding
+# This is needed when embedding the dashboard in other websites
+server = app.server
+
+# Add middleware to allow iframe embedding
+@server.after_request
+def after_request(response):
+    # Remove X-Frame-Options header to allow iframe embedding from any origin
+    # By default, some servers set this to prevent clickjacking, but we want to allow embedding
+    response.headers.pop('X-Frame-Options', None)
+    # Add CORS headers to allow cross-origin requests (useful for API calls if needed)
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+    return response
 
 # custom CSS styles
 app.index_string = '''
@@ -253,4 +270,7 @@ def update_graph(selected_region):
 
 # run the app
 if __name__ == '__main__':
-    app.run(debug=True)
+    # Get port from environment variable (for production deployment) or default to 8050
+    port = int(os.getenv('PORT', 8050))
+    # Set host to 0.0.0.0 to allow external connections (needed for deployment)
+    app.run(debug=True, host='0.0.0.0', port=port)
