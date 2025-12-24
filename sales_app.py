@@ -272,5 +272,7 @@ def update_graph(selected_region):
 if __name__ == '__main__':
     # Get port from environment variable (for production deployment) or default to 8050
     port = int(os.getenv('PORT', 8050))
+    # Disable debug mode in production (when PORT is set by Railway/cloud provider)
+    debug_mode = os.getenv('PORT') is None
     # Set host to 0.0.0.0 to allow external connections (needed for deployment)
-    app.run(debug=True, host='0.0.0.0', port=port)
+    app.run(debug=debug_mode, host='0.0.0.0', port=port)
